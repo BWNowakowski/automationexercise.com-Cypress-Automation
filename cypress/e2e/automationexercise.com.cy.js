@@ -2,17 +2,15 @@
 https://automationexercise.com/test_cases
 */
 
-import Login from "../PageObjects/LoginP";
-import VisitHomeValid from "../PageObjects/VisitAndHomePageValid";
+import VisitHomeValid from "../PageObjects/VisitHomeValid";
+import Login from "../PageObjects/LoginCorrect";
+import Register from "../PageObjects/Register";
 
 describe("automationexercise.com Test Suite", () => {
 
         beforeEach(() => {
-            cy.visit("https://automationexercise.com/")
-            cy.url()
-                .should("eq", "https://automationexercise.com/")
-            cy.get("#header > div > div > div > div.col-sm-8 > div > ul > li:nth-child(1) > a")
-                .should("have.attr", "style")
+            const visit = new VisitHomeValid();
+            visit.visitHomeValid()
         })
 
 
@@ -20,10 +18,12 @@ describe("automationexercise.com Test Suite", () => {
     it("Test Case 1: Register User", () => {
         cy.get("a[href='/login']").click()
         cy.get("div[class='signup-form'] > h2").should("have.text", "New User Signup!")
-        cy.get("input[data-qa='signup-name']").type("BWNowakowski")
-        cy.get("input[data-qa='signup-email']").type("przykladowyemail@example.com")
-        cy.get("button[data-qa='signup-button']").click()
-        cy.get("#form > div > div > div > div.login-form > h2 > b").should("be.visible")
+
+        cy.fixture("login").then( (data) => {
+            const signup = new Register();
+            signup.register(data.username, data.email)
+        })
+
         cy.get("input#id_gender1").check()
         cy.get("input#password").type("haslo123")
         cy.get("select#days").select("21")
@@ -50,64 +50,64 @@ describe("automationexercise.com Test Suite", () => {
         // cy.get("#form > div > div > div > h2").should("be.visible")
         // cy.get("a[data-qa='continue-button']").click()
     })
+
+
+
     
-    it.only("Test Case 2: Login User with correct email and password", () => {
-        cy.get("a[href='/login").click()
+    it("Test Case 2: Login User with correct email and password", () => {
+        cy.get("a[href='/login']").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
         
-        cy.fixture('login').then( (data) => {
-            
-            cy.get("input[data-qa='login-email']").type(data.username)
-            cy.get("input[data-qa='login-email']").should("have.value", "przykladowyemail@example.com")
-            cy.get("input[data-qa='login-password']").type(data.password)
-            cy.get("input[data-qa='login-password']").should("have.value", "haslo123")
-            cy.get("button[data-qa='login-button']").click()
-            cy.get("#header > div > div > div > div.col-sm-8 > div > ul > li:nth-child(10)")
-            .should("be.visible")
-            cy.get("a[href='/delete_account").click()
-            cy.get("#form > div > div > div > h2").should("be.visible")      
+        cy.fixture("login").then( data => {    
+            const login = new Login();
+            login.login(data.email, data.password)
         })
     })
+
+
+
     
     it("Test Case 3: Login User with incorrent email and password", () => {
         cy.get("a[href='/login").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
-        cy.get("input[data-qa='login-email']").type("asd@asd.pl")
-        cy.get("input[data-qa='login-password").type("asd123")
-        cy.get("button[data-qa='login-button']").click()
-        cy.get("#form > div > div > div.col-sm-4.col-sm-offset-1 > div > form > p")
-        .should("be.visible")
+        cy.fixture("login").then( data => {    
+            const login = new Login();
+            login.loginIncorrect("asd@asd.pl", "asd")
+
+        })
     })
+
+
+
     
     it("Test Case 4: Logout User", () => {
         cy.get("a[href='/login").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
         
         cy.fixture('login').then( (data) => {
-            
-            cy.get("input[data-qa='login-email']").type(data.username)
-            cy.get("input[data-qa='login-email']").should("have.value", "przykladowyemail@example.com")
-            cy.get("input[data-qa='login-password").type(data.password)
-            cy.get("input[data-qa='login-password").should("have.value", "haslo123")
-            cy.get("button[data-qa='login-button']").click()
-            cy.get("#header > div > div > div > div.col-sm-8 > div > ul > li:nth-child(10)")
-            .should("be.visible")
+            const login = new Login();
+            login.login(data.email, data.password)
             cy.get("a[href='/logout']").click()
             cy.get("div[class='login-form'] > h2").should("be.visible")
         })
     })
+
+
+
     
-    it("Test Case 5: Register User with existing email", () => {
+    it.only("Test Case 5: Register User with existing email", () => {
         cy.get("a[href='/login").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
         cy.get("#form > div > div > div:nth-child(3) > div > h2").should("be.visible")
-        cy.get("input[data-qa='signup-name']").type("BWNowakowski")
-        cy.get("input[data-qa='signup-name']").should("have.value", "BWNowakowski")
-        cy.get("input[data-qa='signup-email']").type("przykladowyemail@example.com")
-        cy.get("input[data-qa='signup-email']").should("have.value", "przykladowyemail@example.com")
-        cy.get("button[data-qa='signup-button']").click()
+        cy.fixture("login").then( (data) => {
+            const signup = new Register()
+            signup.register(data.username, data.email)
+        })
         cy.get("#form > div > div > div:nth-child(3) > div > form > p").should("be.visible")
     })
+
+
+
 
     it("Test Case 6: Contact Us Form", () => {
         cy.get("a[href='/contact_us']").click()
@@ -126,11 +126,17 @@ describe("automationexercise.com Test Suite", () => {
         .should("have.attr", "style")
     })
 
+
+
+
     it("Test Case 7: Verify Test Cases Page", () => {
         cy.get("a[href='/test_cases'] > i").click()
         cy.get("#header > div > div > div > div.col-sm-8 > div > ul > li:nth-child(5) > a")
         .should("have.attr", "style")
     })
+
+
+    
 
     it("Test Case 8: Verify All Products and product detail page", () => {
         cy.get("a[href='/products']").click()
@@ -150,4 +156,7 @@ describe("automationexercise.com Test Suite", () => {
 
         })
     })
+
+
+
 })
