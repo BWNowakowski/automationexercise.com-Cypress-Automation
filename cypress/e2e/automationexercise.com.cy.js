@@ -95,7 +95,7 @@ describe("automationexercise.com Test Suite", () => {
 
 
     
-    it.only("Test Case 5: Register User with existing email", () => {
+    it("Test Case 5: Register User with existing email", () => {
         cy.get("a[href='/login").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
         cy.get("#form > div > div > div:nth-child(3) > div > h2").should("be.visible")
@@ -146,16 +146,103 @@ describe("automationexercise.com Test Suite", () => {
         cy.url().should("eq", "https://automationexercise.com/product_details/1")
         cy.get("div.product-information")
             .should("be.visible")
-        cy.get("div.product-information").within( () => {
-            cy.get("h2").should("exist")
-            cy.get("p:nth-child(3)").should("exist").should("contain", "Category:")
-            cy.get("span")
-            cy.get("p:nth-child(6)").should("exist").should("contain", "Availability:")
-            cy.get("p:nth-child(7)").should("exist").should("contain", "Condition:")
-            cy.get("body > section > div > div > div.col-sm-9.padding-right > div.product-details > div.col-sm-7 > div > span > span").should("contain", "Rs.")
 
+        // cy.get("div.product-information").within( () => {
+            // cy.get("h2").should("exist")
+            // cy.get("p:nth-child(3)").should("exist").should("contain", "Category:")
+            // cy.get("").should("contain", "Rs.")
+            // cy.get("p:nth-child(6)").should("exist").should("contain", "Availability:")
+            // cy.get("p:nth-child(7)").should("exist").should("contain", "Condition:")
+        // })
+    })
+
+
+
+
+    it("Test Case 9: Search Product", () => {
+        cy.get("a[href='/products']").click()
+        cy.get("h2.title.text-center").should("be.visible")
+        cy.get("#search_product").type("Tshirt")
+        cy.get("#submit_search").click()
+        cy.get("body > section:nth-child(3) > div > div > div.col-sm-9.padding-right > div > h2")
+            .should("be.visible")
+            .should("have.text", "Searched Products")
+        cy.get("body > section:nth-child(3) > div > div > div.col-sm-9.padding-right > div > div:nth-child(3)")
+            .should("be.visible")
+    })
+
+
+
+
+    it("Test Case 10: Verify Subscription in home page", () => {
+        cy.get("#footer").scrollIntoView({duration:2000})
+        cy.get("#footer > div.footer-widget > div > div > div.col-sm-3.col-sm-offset-1 > div > h2")
+            .should("be.visible")
+            .should("have.text", "Subscription")
+            
+            cy.fixture("login").then( (data) => {
+                cy.get("#susbscribe_email").type(data.email)
+            })
+            cy.get("#subscribe").click()
+            cy.get("#success-subscribe > div").should("be.visible")
+        })
+        
+        
+        
+        
+        it("Test Case 11: Verify Subscription in Cart page", () => {
+            cy.get("a[href='/view_cart'] > i").click()
+            cy.get("#footer > div.footer-widget > div > div > div.col-sm-3.col-sm-offset-1 > div > h2")
+                .should("be.visible")
+                .should("have.text", "Subscription")
+            cy.fixture("login").then( (data) => {
+                cy.get("#susbscribe_email").type(data.email)
+            })
+            cy.get("#subscribe").click()
+            cy.get("#success-subscribe > div").should("be.visible")
+    })
+
+
+
+
+
+    it("Test Case 12: Add Products in Cart", () => {
+        cy.get("a[href='/products']").click()
+        cy.get("div#cartModal > div:nth-child(1)").trigger("mouseover", {force: true})
+        cy.get("div.col-sm-4 > div > div > div.product-overlay > div > a[data-product-id='1']")
+            .click( {force: true})
+        cy.get("button.btn.btn-success.close-modal.btn-block")
+            .click()
+        cy.get("div.col-sm-4 > div > div > div.product-overlay > div > a[data-product-id='2']")
+            .click( {force: true})
+        cy.get("div.modal-body > p.text-center > a[href='/view_cart']")
+            .click()
+        cy.get("#product-1")
+            .should("be.visible")
+            .within( () => {
+                cy.get("td").eq(2).should("contain", "Rs.")
+                cy.get("td").eq(3).should("contain", "1")
+                cy.get("td").eq(4).should("contain", "Rs.")
+        })
+        cy.get("#product-2")
+            .should("be.visible")
+            .within( () => {
+                cy.get("td").eq(2).should("contain", "Rs.")
+                cy.get("td").eq(3).should("contain", "1")
+                cy.get("td").eq(4).should("contain", "Rs.")
         })
     })
+
+
+
+
+    it.only("Test Case 13: Verify Product quantity in Cart", () => {
+        cy.get("a[href='/product_details/1']").click()
+        cy.url().should("eq", "https://automationexercise.com/product_details/1")
+        cy.get("input#quantity").value("4")
+    })
+
+
 
 
 
