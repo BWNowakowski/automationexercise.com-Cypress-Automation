@@ -5,6 +5,9 @@ https://automationexercise.com/test_cases
 import VisitHomeValid from "../PageObjects/VisitHomeValid";
 import Login from "../PageObjects/LoginCorrect";
 import Register from "../PageObjects/Register";
+import DeleteAcc from "../PageObjects/DeleteAcc";
+import AddingToCart from "../PageObjects/AddingToCart";
+import PaymentDetails from "../PageObjects/PaymentDetails";
 
 describe("automationexercise.com Test Suite", () => {
 
@@ -19,36 +22,23 @@ describe("automationexercise.com Test Suite", () => {
         cy.get("a[href='/login']").click()
         cy.get("div[class='signup-form'] > h2").should("have.text", "New User Signup!")
 
-        cy.fixture("login").then( (data) => {
+        cy.fixture("user").then( (data) => {
             const signup = new Register();
             signup.register(data.username, data.email)
+            signup.inputFullDetails()
         })
 
-        cy.get("input#id_gender1").check()
-        cy.get("input#password").type("haslo123")
-        cy.get("select#days").select("21")
-        cy.get("select#months").select("May")
-        cy.get("select#years").select("1991")
-        cy.get("input#newsletter").check()
-        cy.get("input#optin").check()
-        cy.get("#first_name").type("Tomasz ")
-        cy.get("#last_name").type("Nowicki")
-        cy.get("#company").type("Firma 1")
-        cy.get("#address1").type("Ptakowa")
-        cy.get("#address2").type("40A")
-        cy.get("#country").select("Israel")
-        cy.get("#state").type("Mazowieckie")
-        cy.get("#city").type("Warszawa")
-        cy.get("#zipcode").type("12-345")
-        cy.get("#mobile_number").type("111-222-333")
+
         cy.get("button[data-qa='create-account").click()
         cy.get("#form > div > div > div > h2").should("be.visible")
         cy.get("a[data-qa='continue-button']").click()
-        cy.get("#header > div > div > div > div.col-sm-8 > div > ul > li:nth-child(10)")
-        .should("contain", "Logged in as")
-        // cy.get("a[href='/delete_account").click()
-        // cy.get("#form > div > div > div > h2").should("be.visible")
-        // cy.get("a[data-qa='continue-button']").click()
+        //By css selectors
+        // cy.get("#header > div > div > div > div.col-sm-8 > div > ul > li:nth-child(10)")
+        // Using XPath to find an element
+        cy.xpath("//header[@id='header']//ul[contains(@class,'nav')]/li/a[contains(text(),'Logged in as')]")
+            .should("contain", "Logged in as")
+            // const deleteAcc = new DeleteAcc()
+            // deleteAcc.deleteAcc()
     })
 
 
@@ -58,7 +48,7 @@ describe("automationexercise.com Test Suite", () => {
         cy.get("a[href='/login']").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
         
-        cy.fixture("login").then( data => {    
+        cy.fixture("user").then( data => {    
             const login = new Login();
             login.login(data.email, data.password)
         })
@@ -70,7 +60,7 @@ describe("automationexercise.com Test Suite", () => {
     it("Test Case 3: Login User with incorrent email and password", () => {
         cy.get("a[href='/login").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
-        cy.fixture("login").then( data => {    
+        cy.fixture("user").then( data => {    
             const login = new Login();
             login.loginIncorrect("asd@asd.pl", "asd")
 
@@ -99,7 +89,7 @@ describe("automationexercise.com Test Suite", () => {
         cy.get("a[href='/login").click()
         cy.get("div[class='login-form'] > h2").should("be.visible")
         cy.get("#form > div > div > div:nth-child(3) > div > h2").should("be.visible")
-        cy.fixture("login").then( (data) => {
+        cy.fixture("user").then( (data) => {
             const signup = new Register()
             signup.register(data.username, data.email)
         })
@@ -180,7 +170,7 @@ describe("automationexercise.com Test Suite", () => {
             .should("be.visible")
             .should("have.text", "Subscription")
             
-            cy.fixture("login").then( (data) => {
+            cy.fixture("user").then( (data) => {
                 cy.get("#susbscribe_email").type(data.email)
             })
             cy.get("#subscribe").click()
@@ -195,7 +185,7 @@ describe("automationexercise.com Test Suite", () => {
             cy.get("#footer > div.footer-widget > div > div > div.col-sm-3.col-sm-offset-1 > div > h2")
                 .should("be.visible")
                 .should("have.text", "Subscription")
-            cy.fixture("login").then( (data) => {
+            cy.fixture("user").then( (data) => {
                 cy.get("#susbscribe_email").type(data.email)
             })
             cy.get("#subscribe").click()
@@ -236,14 +226,134 @@ describe("automationexercise.com Test Suite", () => {
 
 
 
-    it.only("Test Case 13: Verify Product quantity in Cart", () => {
+    it("Test Case 13: Verify Product quantity in Cart", () => {
         cy.get("a[href='/product_details/1']").click()
-        cy.url().should("eq", "https://automationexercise.com/product_details/1")
-        cy.get("input#quantity").value("4")
+        cy.url()
+            .should("eq", "https://automationexercise.com/product_details/1")
+        cy.get("input#quantity")
+            .clear()
+            .type("4")
+        cy.get("button.btn.btn-default.cart")
+            .click()
+        cy.get("div.modal-body > p.text-center > a[href='/view_cart']")
+            .click()
+        cy.get("#product-1")
+            .should("be.visible")
+            .within( () => {
+            cy.get("td").eq(3).should("contain", "4")
+        })
     })
 
 
 
 
+    it("Test Case 14: Place Order: Register while Checkout", () => {
+        cy.get("a[href='/products']").click()
+        cy.get("div#cartModal > div:nth-child(1)").trigger("mouseover", {force: true})
+        cy.get("div.col-sm-4 > div > div > div.product-overlay > div > a[data-product-id='1']")
+            .click( {force: true})
+        cy.get("button.btn.btn-success.close-modal.btn-block")
+            .click()
+        cy.get("div.col-sm-4 > div > div > div.product-overlay > div > a[data-product-id='2']")
+            .click( {force: true})
+        cy.get("div.modal-body > p.text-center > a[href='/view_cart']")
+            .click()
+        cy.get("a[href='/view_cart']")
+            .should("have.attr", "style")
+        cy.get("a.btn.btn-default.check_out").click()
+        cy.get("#checkoutModal > div > div > div.modal-body > p:nth-child(2) > a").click()
+        cy.fixture("user").then( (data) => {
+            const signup = new Register()
+            signup.register(data.username, data.email)
+            signup.inputFullDetails()
+        })
+        cy.get("button[data-qa='create-account").click()
+        cy.get("#form > div > div > div > h2").should("be.visible")
+        cy.get("a[data-qa='continue-button").click()
+        cy.xpath("//header[@id='header']//ul[contains(@class,'nav')]/li/a[contains(text(),'Logged in as')]")
+        .should("contain", "Logged in as")
+        cy.get("a[href='/view_cart'] > i").click()
+        cy.get("a.btn.btn-default.check_out").click()
+        //verify address details and review your order??? comparing to the data used earlier
+        // cy.get("li.address_firstname.address_lastname").should("eq", "Mr. Tomasz Nowicki")???
+        cy.get("textarea[class='form-control']").type("Message for the box")
+        cy.get("a[href='/payment']").click()
+        cy.get("input[data-qa='name-on-card']").type("BWNowakowski")
+        cy.get("input[data-qa='card-number']").type("123123123123123")
+        cy.get("input[data-qa='cvc']").type("123")
+        cy.get("input[data-qa='expiry-month']").type("05")
+        cy.get("input[data-qa='expiry-year']").type("2025")
+        cy.get("#submit").click()
+        //verifying msg that disappers??????
+        // cy.get("#body").contains("Your order has been placed successfully!").should("exist")
+        const deleteAcc = new DeleteAcc()
+        deleteAcc.deleteAcc()
+    })
 
+
+
+
+    it("Test Case 15: Place Order: Register before Checkout", () => {
+        cy.get("a[href='/login").click()
+        cy.fixture("user").then( (data) => {
+            const signup = new Register()
+            signup.register(data.username, data.email)
+            signup.inputFullDetails()
+        })
+        cy.get("button[data-qa='create-account").click()
+        cy.get("#form > div > div > div > h2").should("be.visible")
+        cy.get("a[data-qa='continue-button']").click()
+        cy.xpath("//header[@id='header']//ul[contains(@class,'nav')]/li/a[contains(text(),'Logged in as')]")
+        .should("contain", "Logged in as")
+        cy.get("a[href='/products']").click()
+        cy.get("div#cartModal > div:nth-child(1)").trigger("mouseover", {force: true})
+        cy.get("div.col-sm-4 > div > div > div.product-overlay > div > a[data-product-id='1']")
+            .click( {force: true})
+        cy.get("button.btn.btn-success.close-modal.btn-block")
+            .click()
+        cy.get("div.col-sm-4 > div > div > div.product-overlay > div > a[data-product-id='2']")
+            .click( {force: true})
+        cy.get("div.modal-body > p.text-center > a[href='/view_cart']")
+            .click()
+        cy.get("li[class='active']").should("have.text", "Shopping Cart")
+        cy.get("a.btn.btn-default.check_out").click()
+        //verify address details and review your order??? comparing to the data used earlier
+        // cy.get("li.address_firstname.address_lastname").should("eq", "Mr. Tomasz Nowicki")???
+        cy.get("textarea[class='form-control']").type("Message for the box")
+        cy.get("a[href='/payment']").click()
+        cy.get("input[data-qa='name-on-card']").type("BWNowakowski")
+        cy.get("input[data-qa='card-number']").type("123123123123123")
+        cy.get("input[data-qa='cvc']").type("123")
+        cy.get("input[data-qa='expiry-month']").type("05")
+        cy.get("input[data-qa='expiry-year']").type("2025")
+        cy.get("#submit").click()
+        //verifying msg that disappers??????
+        // cy.get("#body").contains("Your order has been placed successfully!").should("exist")
+        const deleteAcc = new DeleteAcc()
+        deleteAcc.deleteAcc()
+    })
+
+
+
+
+    it.only("Test Case 16: Place Order: Login before Checkout", () => {
+        cy.get("a[href='/login']").click()
+        cy.fixture("user").then( data => {    
+            const login = new Login();
+            login.login(data.email, data.password)
+        })
+        const addingToCart = new AddingToCart()
+        addingToCart.addingToCart()
+        cy.get("div.modal-body > p.text-center > a[href='/view_cart']")
+        .click()
+        cy.get("li[class='active']").should("have.text", "Shopping Cart")
+        cy.get("a.btn.btn-default.check_out").click()
+        //verify address details and review your order
+        cy.get("textarea[class='form-control']").type("Message for the box")
+        cy.get("a[href='/payment']").click()
+        const paymentDetails = new PaymentDetails()
+        paymentDetails.paymentDetails()
+        const deleteAcc = new DeleteAcc()
+        deleteAcc.deleteAcc()
+    })
 })
